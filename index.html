@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Copilot | AI Resume Analyzer & Career Intelligence Engine</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           1. CSS VARIABLES & RESET
+        ========================================= */
+        :root {
+            --primary: #6366F1; /* Indigo */
+            --primary-dark: #4F46E5;
+            --primary-light: #818CF8;
+            --secondary: #8B5CF6; /* Violet */
+            --accent: #22C55E; /* Green */
+            --accent-glow: rgba(34, 197, 94, 0.4);
+            
+            --background: #F9FAFB; /* Gray 50 */
+            --surface: #FFFFFF;
+            
+            --text-dark: #111827; /* Gray 900 */
+            --text-muted: #6B7280; /* Gray 500 */
+            --border: #E5E7EB; /* Gray 200 */
+            
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-full: 9999px;
+            
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+            --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+            
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* =========================================
+           2. GLOBAL ANIMATIONS
+        ========================================= */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5); }
+            70% { box-shadow: 0 0 0 15px rgba(99, 102, 241, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+
+        @keyframes pulse-accent {
+            0% { box-shadow: 0 0 0 0 var(--accent-glow); }
+            70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes fillBar {
+            0% { width: 0%; }
+            100% { width: var(--target-width); }
+        }
+
+        @keyframes scan {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .shimmer-bg {
+            background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+            background-size: 200% 100%;
+            animation: shimmer 2.5s infinite linear;
+        }
+
+        .float-anim {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .pulse-anim {
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* =========================================
+           3. TYPOGRAPHY & LAYOUT
+        ========================================= */
+        .container {
+            width: 100%;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        section {
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            border-radius: var(--radius-full);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 4vw, 2.75rem);
+            font-weight: 800;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .section-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+        }
+
+        /* BUTTONS */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 32px;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: 1rem;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.2);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: -1;
+        }
+
+        .btn:hover::after {
+            opacity: 1;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--primary);
+            border: 2px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--primary);
+        }
+
+        /* =========================================
+           4. NAVBAR
+        ========================================= */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-dark);
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            color: white;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* =========================================
+           5. HERO SECTION
+        ========================================= */
+        .hero {
+            min-height: 100vh;
+            padding-top: 160px;
+            padding-bottom: 80px;
+            display: flex;
+            align-items: center;
+            background: radial-gradient(circle at 50% -20%, rgba(139, 92, 246, 0.15) 0%, rgba(249, 250, 251, 1) 60%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+            top: 20%;
+            right: -10%;
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content h1 {
+            font-size: clamp(3rem, 5vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .hero-content p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            max-width: 540px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        /* Fake Resume Upload UI */
+        .hero-visual {
+            position: relative;
+        }
+
+        .upload-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 2;
+        }
+
+        .upload-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 22px;
+            z-index: -1;
+            opacity: 0.5;
+            filter: blur(10px);
+        }
+
+        .dropzone {
+            border: 2px dashed var(--primary-light);
+            border-radius: var(--radius-md);
+            padding: 40px 20px;
+            text-align: center;
+            background: rgba(99, 102, 241, 0.03);
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dropzone:hover {
+            background: rgba(99, 102, 241, 0.08);
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+
+        .drop-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+
+        .dropzone:hover .drop-icon {
+            transform: translateY(-10px);
+        }
+
+        .drop-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .drop-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .upload-preview {
+            margin-top: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            font-size: 1.2rem;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .file-progress-container {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .file-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: var(--radius-full);
+            width: 100%;
+            animation: fillBar 2s ease-out;
+        }
+
+        .file-status {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 1.2rem;
+            animation: pulse-glow 2s infinite;
+            border-radius: 50%;
+        }
+
+        /* Floating decoration elements */
+        .decor-blob {
+            position: absolute;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.4;
+            z-index: 0;
+        }
+
+        .blob-1 { width: 150px; height: 150px; top: -50px; right: -20px; }
+        .blob-2 { width: 100px; height: 100px; bottom: 20px; left: -30px; background: var(--accent); }
+
+        /* =========================================
+           6. INTERACTIVE SCANNER DEMO (THE SHOWSTOPPER)
+        ========================================= */
+        .demo-section {
+            background: #111827; /* Dark background for contrast */
+            color: white;
+            padding: 120px 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .demo-container {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            position: relative;
+            z-index: 2;
+        }
+
+        .demo-container::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 22px;
+            z-index: -1;
+            opacity: 0.5;
+            filter: blur(15px);
+        }
+
+        /* LEFT: Resume Skeleton UI */
+        .demo-resume {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            min-height: 500px;
+        }
+
+        /* Scanning Laser Effect */
+        .scanner-laser {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+            box-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent);
+            animation: scan 4s infinite cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+        }
+
+        .res-header { width: 60%; height: 24px; margin-bottom: 20px; border-radius: 4px; }
+        .res-sub { width: 40%; height: 12px; margin-bottom: 40px; border-radius: 4px; }
+        .res-section { width: 30%; height: 16px; margin-bottom: 16px; border-radius: 4px; }
+        .res-line { width: 100%; height: 10px; margin-bottom: 12px; border-radius: 4px; }
+        .res-line.short { width: 85%; }
+        .res-line.shorter { width: 70%; }
+        .res-block { margin-bottom: 32px; position: relative; }
+
+        /* Highlight animation on resume blocks */
+        .res-highlight {
+            position: absolute;
+            inset: -8px;
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            background: rgba(34, 197, 94, 0.1);
+            opacity: 0;
+            animation: highlightFade 4s infinite 1s;
+        }
+
+        @keyframes highlightFade {
+            0%, 100% { opacity: 0; }
+            10%, 40% { opacity: 1; }
+        }
+
+        /* RIGHT: AI Analysis Panel */
+        .demo-ai-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .ai-status-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse-accent 2s infinite;
+        }
+
+        .ai-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+        }
+
+        .ai-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .score-display {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent) 85%, rgba(255,255,255,0.1) 0);
+            display: grid;
+            place-items: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            background: #1e293b; /* Slate 800 */
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .score-value {
+            position: relative;
+            z-index: 2;
+            color: white;
+        }
+
+        .score-info h4 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .score-info p {
+            color: #9CA3AF;
+            font-size: 0.9rem;
+        }
+
+        /* Keyword Match Progress */
+        .match-row {
+            margin-top: 16px;
+        }
+
+        .match-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            margin-bottom: 8px;
+            color: #D1D5DB;
+        }
+
+        .match-bar-bg {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .match-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        /* Specific widths for animation using CSS variables */
+        .bar-1 { animation: fillBar 1.5s ease-out forwards; --target-width: 92%; }
+        .bar-2 { animation: fillBar 1.5s ease-out 0.2s forwards; --target-width: 65%; background: linear-gradient(90deg, #F59E0B, #F97316); }
+
+        /* Suggestions List */
+        .suggestion-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .suggestion-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .sugg-icon {
+            width: 24px;
+            height: 24px;
+            background: rgba(245, 158, 11, 0.2);
+            color: #F59E0B;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .sugg-icon.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--accent);
+        }
+
+        .sugg-text h5 {
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .sugg-text p {
+            font-size: 0.85rem;
+            color: #9CA3AF;
+        }
+
+        .highlight-word {
+            background: rgba(245, 158, 11, 0.2);
+            color: #FBBF24;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+
+        /* =========================================
+           7. FEATURES SECTION
+        ========================================= */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            position: relative;
+            z-index: 1;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            height: 100%;
+        }
+
+        /* Glowing Gradient Border Effect */
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            background-size: 200% 200%;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+            animation: shimmer 3s infinite linear;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            transition: var(--transition);
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1) rotate(5deg);
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* =========================================
+           8. HOW IT WORKS (STEP FLOW UI)
+        ========================================= */
+        .steps-container {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-top: 60px;
+        }
+
+        /* Connecting Line */
+        .steps-container::before {
+            content: '';
+            position: absolute;
+            top: 40px; /* Align with center of circle */
+            left: 50px;
+            right: 50px;
+            height: 4px;
+            background: var(--border);
+            z-index: 0;
+        }
+
+        /* Animated Progress Line */
+        .steps-container::after {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: 50px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            z-index: 1;
+            width: 100%;
+            transform-origin: left;
+            animation: fillBar 4s infinite alternate ease-in-out;
+            --target-width: calc(100% - 100px);
+        }
+
+        .step-card {
+            width: 30%;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-number {
+            width: 80px;
+            height: 80px;
+            background: var(--surface);
+            border: 4px solid var(--primary);
+            color: var(--primary);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0 auto 24px;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .step-card:hover .step-number {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .step-title {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .step-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* =========================================
+           9. PRICING SECTION
+        ========================================= */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            align-items: center;
+        }
+
+        .pricing-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 48px 32px;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .pricing-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-5px);
+        }
+
+        .pricing-popular {
+            border: 2px solid var(--primary);
+            box-shadow: var(--shadow-md);
+            transform: scale(1.05);
+            z-index: 2;
+            background: linear-gradient(to bottom, #ffffff, #f9fafb);
+        }
+
+        .pricing-popular:hover {
+            transform: scale(1.05) translateY(-5px);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 6px 20px;
+            border-radius: var(--radius-full);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: var(--shadow-glow);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .plan-price {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            line-height: 1;
+        }
+
+        .plan-price span {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .plan-features {
+            margin: 32px 0 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .plan-feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .feature-check {
+            color: var(--accent);
+            background: rgba(34, 197, 94, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .feature-x {
+            color: #EF4444;
+            background: rgba(239, 68, 68, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .pricing-card .btn {
+            width: 100%;
+        }
+
+        /* =========================================
+           10. TESTIMONIALS
+        ========================================= */
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 32px;
+        }
+
+        .test-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            transition: var(--transition);
+            position: relative;
+            z-index: 1;
+        }
+
+        .test-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+        }
+
+        /* Quote mark decorative */
+        .test-card::after {
+            content: '"';
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 6rem;
+            color: rgba(99, 102, 241, 0.05);
+            font-family: serif;
+            z-index: -1;
+            line-height: 1;
+        }
+
+        .stars {
+            color: #FBBF24;
+            font-size: 1.25rem;
+            margin-bottom: 24px;
+            letter-spacing: 2px;
+        }
+
+        .test-text {
+            font-size: 1.05rem;
+            color: var(--text-dark);
+            font-style: italic;
+            margin-bottom: 32px;
+            line-height: 1.8;
+        }
+
+        .test-author {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .author-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            border: 2px solid white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .author-info h4 {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .author-info p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* =========================================
+           11. FINAL CTA SECTION
+        ========================================= */
+        .cta-section {
+            background: linear-gradient(135deg, var(--text-dark), #1F2937);
+            color: white;
+            text-align: center;
+            padding: 120px 0;
+            position: relative;
+            overflow: hidden;
+            margin-top: 60px;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.2) 0%, transparent 60%);
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cta-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 24px;
+            line-height: 1.1;
+        }
+
+        .cta-desc {
+            font-size: 1.25rem;
+            color: #D1D5DB;
+            margin-bottom: 48px;
+        }
+
+        .btn-cta {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 1.1rem;
+            padding: 18px 48px;
+            border-radius: var(--radius-full);
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            transition: var(--transition);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.6);
+        }
+
+        /* =========================================
+           12. FOOTER
+        ========================================= */
+        footer {
+            background: #111827; /* Darker than CTA */
+            color: #9CA3AF;
+            padding: 80px 0 40px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+
+        .footer-brand .logo {
+            color: white;
+            margin-bottom: 24px;
+        }
+
+        .footer-brand p {
+            line-height: 1.8;
+            max-width: 320px;
+        }
+
+        .footer-col h4 {
+            color: white;
+            font-size: 1.1rem;
+            margin-bottom: 24px;
+            font-weight: 600;
+        }
+
+        .footer-col ul {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .footer-col a {
+            transition: color 0.2s;
+        }
+
+        .footer-col a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            padding-top: 32px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            color: white;
+            transition: var(--transition);
+        }
+
+        .social-icon:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        /* =========================================
+           13. RESPONSIVE DESIGN
+        ========================================= */
+        @media (max-width: 1024px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 40px;
+            }
+            .hero-content p {
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .hero-actions {
+                justify-content: center;
+            }
+            .demo-container {
+                grid-template-columns: 1fr;
+            }
+            .pricing-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .pricing-popular {
+                transform: none;
+            }
+            .pricing-popular:hover {
+                transform: translateY(-5px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links, .nav-actions .btn-secondary {
+                display: none;
+            }
+            .steps-container {
+                flex-direction: column;
+                gap: 40px;
+            }
+            .steps-container::before, .steps-container::after {
+                display: none;
+            }
+            .step-card {
+                width: 100%;
+            }
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .footer-bottom {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            .hero-actions .btn {
+                width: 100%;
+            }
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =========================================
+         1. NAVBAR
+    ========================================= -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">C</div>
+                Career Copilot
+            </a>
+            
+            <ul class="nav-links">
+                <li><a href="#demo">Scanner Demo</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How it Works</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <a href="#login" class="btn btn-secondary pulse-anim" style="padding: 10px 24px; margin-right: 16px;">Sign In</a>
+                <a href="#signup" class="btn btn-primary" style="padding: 10px 24px;">Start Free</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- =========================================
+         2. HERO SECTION
+    ========================================= -->
+    <header class="hero">
+        <!-- Floating Decor -->
+        <div class="decor-blob blob-1 float-anim"></div>
+        <div class="decor-blob blob-2 float-anim" style="animation-delay: 2s;"></div>
+
+        <div class="container hero-grid">
+            <!-- Text Content -->
+            <div class="hero-content">
+                <span class="tag">🚀 Powered by GPT-4 Vision</span>
+                <h1>Outsmart the ATS. <br>Land the <span class="text-gradient">Dream Job.</span></h1>
+                <p>Upload your resume and let our intelligent engine analyze, optimize, and instantly score your profile against top industry roles.</p>
+                
+                <div class="hero-actions">
+                    <a href="#upload" class="btn btn-primary">Analyze Resume Now</a>
+                    <a href="#demo" class="btn btn-secondary" style="border: none; background: transparent;">View Live Demo &darr;</a>
+                </div>
+            </div>
+
+            <!-- Fake Resume Upload UI -->
+            <div class="hero-visual float-anim" style="animation-duration: 8s;">
+                <div class="upload-card">
+                    <div class="dropzone">
+                        <div class="drop-icon">📄</div>
+                        <h3 class="drop-title">Drag & drop your resume</h3>
+                        <p class="drop-subtitle">Supports PDF, DOCX (Max 5MB)</p>
+                        <div class="btn btn-secondary">Browse Files</div>
+                    </div>
+
+                    <!-- Simulated Uploading State -->
+                    <div class="upload-preview">
+                        <div class="file-icon">✓</div>
+                        <div class="file-details">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span class="file-name">alex_software_eng_2026.pdf</span>
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">100%</span>
+                            </div>
+                            <div class="file-progress-container">
+                                <div class="file-progress-bar" style="--target-width: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- =========================================
+         3. INTERACTIVE SCANNER DEMO
+    ========================================= -->
+    <section id="demo" class="demo-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="tag" style="background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.2);">Live Demo</span>
+                <h2 class="section-title">See the AI in Action</h2>
+                <p class="section-subtitle" style="color: #9CA3AF;">Watch how our engine parses, evaluates, and suggests improvements in real-time.</p>
+            </div>
+
+            <div class="demo-container">
+                <!-- Left: Resume Skeleton -->
+                <div class="demo-resume">
+                    <!-- Laser Scanner -->
+                    <div class="scanner-laser"></div>
+                    
+                    <!-- Highlight Box (Animated) -->
+                    <div class="res-block" style="margin-bottom: 40px;">
+                        <div class="res-header shimmer-bg"></div>
+                        <div class="res-sub shimmer-bg"></div>
+                        <div class="res-sub shimmer-bg" style="width: 20%;"></div>
+                    </div>
+
+                    <div class="res-block">
+                        <div class="res-highlight"></div> <!-- Animated Glow -->
+                        <div class="res-section shimmer-bg"></div>
+                        <div class="res-line shimmer-bg"></div>
+                        <div class="res-line shimmer-bg short"></div>
+                        <div class="res-line shimmer-bg shorter"></div>
+                    </div>
+
+                    <div class="res-block">
+                        <div class="res-section shimmer-bg" style="width: 40%;"></div>
+                        <div class="res-line shimmer-bg"></div>
+                        <div class="res-line shimmer-bg shorter"></div>
+                    </div>
+                </div>
+
+                <!-- Right: AI Analysis Panel -->
+                <div class="demo-ai-panel">
+                    <div class="ai-header">
+                        <div class="ai-status-dot"></div>
+                        <h3 style="font-weight: 600; letter-spacing: 1px;">AI ANALYSIS COMPLETE</h3>
+                    </div>
+
+                    <!-- Score Card -->
+                    <div class="ai-card score-display">
+                        <div class="score-circle">
+                            <span class="score-value">85</span>
+                        </div>
+                        <div class="score-info">
+                            <h4>Overall ATS Compatibility</h4>
+                            <p>Good, but missing key technical skills.</p>
+                        </div>
+                    </div>
+
+                    <!-- Keyword Match -->
+                    <div class="ai-card">
+                        <h4 style="margin-bottom: 16px;">Job Description Match</h4>
+                        
+                        <div class="match-row">
+                            <div class="match-label">
+                                <span>Hard Skills</span>
+                                <span style="color: white; font-weight: 600;">92%</span>
+                            </div>
+                            <div class="match-bar-bg">
+                                <div class="match-bar-fill bar-1"></div>
+                            </div>
+                        </div>
+
+                        <div class="match-row">
+                            <div class="match-label">
+                                <span>Soft Skills</span>
+                                <span style="color: white; font-weight: 600;">65%</span>
+                            </div>
+                            <div class="match-bar-bg">
+                                <div class="match-bar-fill bar-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Suggestions -->
+                    <div class="ai-card">
+                        <h4 style="margin-bottom: 20px;">AI Recommendations</h4>
+                        
+                        <div class="suggestion-item">
+                            <div class="sugg-icon">!</div>
+                            <div class="sugg-text">
+                                <h5>Missing Keywords</h5>
+                                <p>Add <span class="highlight-word">Kubernetes</span> and <span class="highlight-word">CI/CD</span> to match the Sr. Developer role requirements.</p>
+                            </div>
+                        </div>
+
+                        <div class="suggestion-item">
+                            <div class="sugg-icon success">✓</div>
+                            <div class="sugg-text">
+                                <h5>Action Verbs Detected</h5>
+                                <p>Great job using strong verbs like "Architected" and "Spearheaded".</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================
+         4. FEATURES SECTION
+    ========================================= -->
+    <section id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="tag">Features</span>
+                <h2 class="section-title">Your Unfair Career Advantage</h2>
+                <p class="section-subtitle">Everything you need to bypass applicant tracking systems.</p>
+            </div>
+
+            <div class="features-grid">
+                <!-- Card 1 -->
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Smart AI Analysis</h3>
+                    <p>Our proprietary LLM scans your resume line-by-line, identifying weak verbs, missing keywords, and structural flaws instantly.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>ATS Keyword Matching</h3>
+                    <p>Paste a job description and instantly see your match rate. We highlight the exact keywords you need to add to pass the filters.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>Real-time Impact Scoring</h3>
+                    <p>Get a quantitative score out of 100 based on industry standards, formatting, impact metrics, and readability.</p>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="feature-card">
+                    <div class="feature-icon">✨</div>
+                    <h3>1-Click Tailoring</h3>
+                    <p>Automatically rewrite bullet points for specific roles, transforming generic duties into measurable achievements.</p>
+                </div>
+                
+                <!-- Card 5 -->
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Pixel-Perfect Export</h3>
+                    <p>Download a beautifully formatted, ATS-compliant PDF that maintains its structure when parsed by recruitment software.</p>
+                </div>
+                
+                <!-- Card 6 -->
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Total Data Privacy</h3>
+                    <p>Your career data is encrypted and never used to train public models. Delete your profile and documents at any time.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================
+         5. HOW IT WORKS
+    ========================================= -->
+    <section id="how-it-works" style="background: white;">
+        <div class="container">
+            <div class="section-header">
+                <span class="tag">Workflow</span>
+                <h2 class="section-title">3 Steps to the Perfect Resume</h2>
+                <p class="section-subtitle">The days of sending generic resumes are over.</p>
+            </div>
+
+            <div class="steps-container">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Upload & Parse</h3>
+                    <p class="step-desc">Drag and drop your current resume. We instantly extract and structure your work history using deep learning.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">AI Optimization</h3>
+                    <p class="step-desc">Our engine cross-references your profile against target jobs, finding skill gaps and rewriting bullet points.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Export & Apply</h3>
+                    <p class="step-desc">Download a polished, ATS-friendly PDF and apply with the confidence that human eyes will actually see it.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================
+         6. PRICING SECTION
+    ========================================= -->
+    <section id="pricing">
+        <div class="container">
+            <div class="section-header">
+                <span class="tag">Pricing</span>
+                <h2 class="section-title">Invest in Your Future</h2>
+                <p class="section-subtitle">Transparent, flexible pricing for ambitious professionals.</p>
+            </div>
+
+            <div class="pricing-grid">
+                <!-- Basic -->
+                <div class="pricing-card">
+                    <h3 class="plan-name">Starter</h3>
+                    <div class="plan-price">$0<span>/mo</span></div>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">Perfect for basic resume checks.</p>
+                    
+                    <div class="plan-features">
+                        <div class="plan-feature"><span class="feature-check">✓</span> 3 Resume Scans / month</div>
+                        <div class="plan-feature"><span class="feature-check">✓</span> Basic ATS Format Check</div>
+                        <div class="plan-feature"><span class="feature-check">✓</span> 1 Job Match Analysis</div>
+                        <div class="plan-feature"><span class="feature-x">✗</span> AI Bullet Rewriting</div>
+                    </div>
+                    <button class="btn btn-secondary">Get Started Free</button>
+                </div>
+
+                <!-- Pro -->
+                <div class="pricing-card pricing-popular">
+                    <div class="popular-badge">Most Popular</div>
+                    <h3 class="plan-name">Pro</h3>
+                    <div class="plan-price">$19<span>/mo</span></div>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">Everything you need to land interviews.</p>
+                    
+                    <div class="plan-features">
+                        <div class="plan-feature"><span class="feature-check">✓</span> Unlimited Resume Scans</div>
+                        <div class="plan-feature"><span class="feature-check">✓</span> Advanced AI Rewriting</div>
+                        <div class="plan-feature"><span class="feature-check">✓</span> Unlimited Keyword Matching</div>
+                        <div class="plan-feature"><span class="feature-check">✓</span> AI Cover Letter Gen</div>
+                    </div>
+                    <button class="btn btn-primary pulse-anim">Start 7-Day Free Trial</button>
+                </div>
+
+                <!-- Lifetime -->
+                <div class="pricing-card">
+                    <h3 class="plan-name">Lifetime</h3>
+                    <div class="plan-price">$99<span>/once</span></div>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">Pay once, use it forever.</p>
+                    
+                    <div class="plan-features">
+                        <div class="plan-feature"><span class="feature-check">✓</span> All Pro Features</div>
+                        <div class="plan-feature"><span class="feature-check">✓</span> Interview Simulator</div>
+                        <div class="plan-feature"><span class="feature-check">✓</span> Priority Support</div>
+                        <div class="plan-feature"><span class="feature-check">✓</span> Future Updates Free</div>
+                    </div>
+                    <button class="btn btn-secondary">Get Lifetime Access</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================
+         7. TESTIMONIALS
+    ========================================= -->
+    <section id="testimonials" style="background: white;">
+        <div class="container">
+            <div class="section-header">
+                <span class="tag">Success Stories</span>
+                <h2 class="section-title">Don't Just Take Our Word For It</h2>
+            </div>
+
+            <div class="testimonials-grid">
+                <div class="test-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="test-text">"I was applying for months with zero response. After running my resume through Career Copilot and fixing the ATS issues, I landed 3 interviews in a week. Game-changer."</p>
+                    <div class="test-author">
+                        <div class="author-avatar">SJ</div>
+                        <div class="author-info">
+                            <h4>Sarah Jenkins</h4>
+                            <p>Product Manager</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="test-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="test-text">"The AI bullet point rewriter is incredible. It took my boring daily tasks and turned them into metric-driven achievements that actually made me sound like an expert."</p>
+                    <div class="test-author">
+                        <div class="author-avatar" style="background: linear-gradient(135deg, var(--accent), #10B981);">MC</div>
+                        <div class="author-info">
+                            <h4>Marcus Chen</h4>
+                            <p>Senior Engineer</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="test-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="test-text">"As a recent grad, I had no idea how to structure my resume. The feedback was specific, actionable, and the exported PDF looked beautiful. Worth every penny."</p>
+                    <div class="test-author">
+                        <div class="author-avatar" style="background: linear-gradient(135deg, #F43F5E, #E11D48);">ER</div>
+                        <div class="author-info">
+                            <h4>Elena Rodriguez</h4>
+                            <p>Data Analyst</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================
+         8. FINAL CTA
+    ========================================= -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2 class="cta-title">Ready to elevate your career?</h2>
+                <p class="cta-desc">Join over 50,000 ambitious professionals who use Career Copilot to beat the algorithms and secure top-tier offers.</p>
+                <button class="btn-cta pulse-anim">Build Your Resume Now</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================
+         9. FOOTER
+    ========================================= -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="logo" style="color: white; margin-bottom: 20px;">
+                        <div class="logo-icon">C</div>
+                        Career Copilot
+                    </div>
+                    <p>Your intelligent partner for navigating the modern job market. AI-driven insights for ambitious professionals.</p>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#">Resume Analyzer</a></li>
+                        <li><a href="#">Cover Letter Gen</a></li>
+                        <li><a href="#">Interview Prep</a></li>
+                        <li><a href="#">Pricing</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Career Blog</a></li>
+                        <li><a href="#">Resume Templates</a></li>
+                        <li><a href="#">ATS Guide</a></li>
+                        <li><a href="#">Help Center</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 Career Copilot Inc. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="#" class="social-icon">𝕏</a>
+                    <a href="#" class="social-icon">in</a>
+                    <a href="#" class="social-icon">GH</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
